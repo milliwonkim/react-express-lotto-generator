@@ -11,8 +11,8 @@ app.use(express.static(path.join(__dirname, 'public', 'index.html')));
 app.use(express.static('public'));
 
 const getWholeWinningNumber = async () => {
-    // const lastEnd = roundNumber[0].roundNumber;
-    const lastEnd = 10;
+    const lastEnd = roundNumber[0].roundNumber;
+    // const lastEnd = 10;
 
     const winningArray = [];
 

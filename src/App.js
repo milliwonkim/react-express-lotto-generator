@@ -5,6 +5,7 @@ import './App.css';
 
 function App() {
     const [array, setArray] = useState([]);
+    const [sortArray, setSortArray] = useState([]);
     const [isLoading, setIsLoading] = useState(0);
 
     let i = 0;
@@ -42,8 +43,110 @@ function App() {
     };
 
     const getSort = (object) => {
-        const sortByDesc = Object.entries(object).sort(([, a], [, b]) => b - a);
-        return Object.fromEntries(sortByDesc);
+        // const sortByDesc = Object.entries(object).sort(([, a], [, b]) => b - a);
+        // return Object.fromEntries(sortByDesc);
+        return Object.entries(object).sort(([, a], [, b]) => b - a);
+    };
+
+    const getSubArray = (array, freqObject, i) => {
+        const { no1, no2, no3, no4, no5, no6, bonusNumber } = freqObject;
+        if (getSort(no1)[i]) {
+            array.push(getSort(no1)[i]);
+        } else {
+            array.push(null);
+        }
+
+        if (getSort(no2)[i]) {
+            array.push(getSort(no2)[i]);
+        } else {
+            array.push(null);
+        }
+
+        if (getSort(no3)[i]) {
+            array.push(getSort(no3)[i]);
+        } else {
+            array.push(null);
+        }
+
+        if (getSort(no4)[i]) {
+            array.push(getSort(no4)[i]);
+        } else {
+            array.push(null);
+        }
+
+        if (getSort(no5)[i]) {
+            array.push(getSort(no5)[i]);
+        } else {
+            array.push(null);
+        }
+
+        if (getSort(no6)[i]) {
+            array.push(getSort(no6)[i]);
+        } else {
+            array.push(null);
+        }
+
+        if (getSort(bonusNumber)[i]) {
+            array.push(getSort(bonusNumber)[i]);
+        } else {
+            array.push(null);
+        }
+    };
+
+    const returnTableArray = (freqObject, freqArray) => {
+        const one = [];
+        const two = [];
+        const three = [];
+        const four = [];
+        const five = [];
+        const six = [];
+        const bonus = [];
+
+        for (let i = 0; i < getMostLongerWinning(freqObject); i++) {
+            if (i === 0) getSubArray(one, freqObject, i);
+            if (i === 1) getSubArray(two, freqObject, i);
+            if (i === 2) getSubArray(three, freqObject, i);
+            if (i === 3) getSubArray(four, freqObject, i);
+            if (i === 4) getSubArray(five, freqObject, i);
+            if (i === 5) getSubArray(six, freqObject, i);
+            if (i === 6) getSubArray(bonus, freqObject, i);
+        }
+
+        freqArray.push(one);
+        freqArray.push(two);
+        freqArray.push(three);
+        freqArray.push(four);
+        freqArray.push(five);
+        freqArray.push(six);
+        freqArray.push(bonus);
+    };
+
+    const getMostLongerWinning = (object) => {
+        const { no1, no2, no3, no4, no5, no6 } = object;
+        const lengthOne = Object.keys(no1).length;
+        const lengthTwo = Object.keys(no2).length;
+        const lengthThree = Object.keys(no3).length;
+        const lengthFour = Object.keys(no4).length;
+        const lengthFive = Object.keys(no5).length;
+        const lengthSix = Object.keys(no6).length;
+
+        const lengthArray = [
+            lengthOne,
+            lengthTwo,
+            lengthThree,
+            lengthFour,
+            lengthFive,
+            lengthSix,
+        ];
+
+        let biggestNumber = lengthOne;
+        for (let i = 0; i < lengthArray.length; i++) {
+            if (biggestNumber <= lengthArray[i]) {
+                biggestNumber = lengthArray[i];
+            }
+        }
+
+        return biggestNumber;
     };
 
     // TODO 1번째 당첨번호에서 무슨 번호가 가장 많이 등장했는지 순서별로 확인 필요
@@ -58,6 +161,8 @@ function App() {
             bonusNumber: {},
         };
 
+        const freqArray = [];
+
         response.data.forEach((element) => {
             const { no1, no2, no3, no4, no5, no6, bonusNumber } = element;
             injectLottoFreq(freqObject, 'no1', no1);
@@ -71,15 +176,18 @@ function App() {
 
         const { no1, no2, no3, no4, no5, no6, bonusNumber } = freqObject;
 
-        freqObject[no1] = getSort(no1);
-        freqObject[no2] = getSort(no2);
-        freqObject[no3] = getSort(no3);
-        freqObject[no4] = getSort(no4);
-        freqObject[no5] = getSort(no5);
-        freqObject[no6] = getSort(no6);
-        freqObject[bonusNumber] = getSort(bonusNumber);
+        returnTableArray(freqObject, freqArray);
+        setSortArray(freqArray);
 
-        return freqObject;
+        return [
+            getSort(no1),
+            getSort(no2),
+            getSort(no3),
+            getSort(no4),
+            getSort(no5),
+            getSort(no6),
+            getSort(bonusNumber),
+        ];
     };
 
     const getValidNumber = (number, response) => {
@@ -168,8 +276,8 @@ function App() {
         setIsLoading(1);
         const response = await axios.get('http://localhost:5000/lotto');
 
-        console.log('getRankByColumn(response)', getRankByColumn(response));
         getRankByColumn(response);
+        console.log('getRankByColumn(response)', getRankByColumn(response));
         returnTempLottoNumber(response.data);
     };
 
@@ -190,14 +298,10 @@ function App() {
                     );
                 });
             case 1:
-                console.log('Get Lotto From Server');
                 return <p>Get Lotto From Server</p>;
             case 2:
-                console.log('Generate Lotto Number');
                 return <p>Generate Lotto Number</p>;
             default:
-                console.log('Get Valid Lotto Number(Verify)');
-                console.log('------------------------------');
                 return <p>Get Valid Lotto Number(Verify)</p>;
         }
     };
@@ -207,6 +311,37 @@ function App() {
             <button onClick={getLotto}>생산</button>
             <br />
             {renderLottoClient()}
+            <table style={{ width: '100%', border: '1px solid #424242' }}>
+                <thead>
+                    <tr>
+                        <td>no1</td>
+                        <td>no2</td>
+                        <td>no3</td>
+                        <td>no4</td>
+                        <td>no5</td>
+                        <td>no6</td>
+                        <td>bonus number</td>
+                    </tr>
+                </thead>
+                <tbody style={{ border: '1px solid #424242' }}>
+                    {sortArray.map((el, i) => {
+                        return (
+                            <tr key={i}>
+                                {el.map((e, j) => {
+                                    if (e === null) {
+                                        return <td key={j}></td>;
+                                    }
+                                    return (
+                                        <td key={j}>
+                                            {e[0]}({e[1]})
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 }
