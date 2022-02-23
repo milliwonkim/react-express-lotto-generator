@@ -2,152 +2,17 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 import './App.css';
+import {
+    getRandomNumber,
+    getRangeRandomNumber,
+} from './helper/getRandomNumber';
+import { getSort } from './helper/getSubArray';
+import { injectLottoFreq, returnTableArray } from './helper/returnTableArray';
 
 function App() {
     const [array, setArray] = useState([]);
     const [sortArray, setSortArray] = useState([]);
     const [isLoading, setIsLoading] = useState(0);
-
-    let i = 0;
-    const recursiveLimit = 2000;
-
-    const getCurrentNumber = (limitFor) => {
-        const digit = Math.floor(Math.random() * (limitFor + 1));
-
-        return digit;
-    };
-
-    const getRandomNumber = (previousNumber, limitFor) => {
-        const currentNumber = getCurrentNumber(limitFor);
-
-        if (previousNumber && previousNumber > 0 && currentNumber > 0) {
-            if (previousNumber < currentNumber) {
-                return currentNumber;
-            }
-
-            if (previousNumber >= currentNumber && i < recursiveLimit) {
-                i += 1;
-                return getRandomNumber(previousNumber, limitFor);
-            }
-        }
-    };
-
-    const injectLottoFreq = (freqObject, key, no) => {
-        if (no) {
-            if (freqObject[`${key}`][`${no}`]) {
-                freqObject[`${key}`][`${no}`] += 1;
-            } else {
-                freqObject[`${key}`][`${no}`] = 1;
-            }
-        }
-    };
-
-    const getSort = (object) => {
-        // const sortByDesc = Object.entries(object).sort(([, a], [, b]) => b - a);
-        // return Object.fromEntries(sortByDesc);
-        return Object.entries(object).sort(([, a], [, b]) => b - a);
-    };
-
-    const getSubArray = (array, freqObject, i) => {
-        const { no1, no2, no3, no4, no5, no6, bonusNumber } = freqObject;
-        if (getSort(no1)[i]) {
-            array.push(getSort(no1)[i]);
-        } else {
-            array.push(null);
-        }
-
-        if (getSort(no2)[i]) {
-            array.push(getSort(no2)[i]);
-        } else {
-            array.push(null);
-        }
-
-        if (getSort(no3)[i]) {
-            array.push(getSort(no3)[i]);
-        } else {
-            array.push(null);
-        }
-
-        if (getSort(no4)[i]) {
-            array.push(getSort(no4)[i]);
-        } else {
-            array.push(null);
-        }
-
-        if (getSort(no5)[i]) {
-            array.push(getSort(no5)[i]);
-        } else {
-            array.push(null);
-        }
-
-        if (getSort(no6)[i]) {
-            array.push(getSort(no6)[i]);
-        } else {
-            array.push(null);
-        }
-
-        if (getSort(bonusNumber)[i]) {
-            array.push(getSort(bonusNumber)[i]);
-        } else {
-            array.push(null);
-        }
-    };
-
-    const returnTableArray = (freqObject, freqArray) => {
-        const one = [];
-        const two = [];
-        const three = [];
-        const four = [];
-        const five = [];
-        const six = [];
-        const bonus = [];
-
-        for (let i = 0; i < getMostLongerWinning(freqObject); i++) {
-            if (i === 0) getSubArray(one, freqObject, i);
-            if (i === 1) getSubArray(two, freqObject, i);
-            if (i === 2) getSubArray(three, freqObject, i);
-            if (i === 3) getSubArray(four, freqObject, i);
-            if (i === 4) getSubArray(five, freqObject, i);
-            if (i === 5) getSubArray(six, freqObject, i);
-            if (i === 6) getSubArray(bonus, freqObject, i);
-        }
-
-        freqArray.push(one);
-        freqArray.push(two);
-        freqArray.push(three);
-        freqArray.push(four);
-        freqArray.push(five);
-        freqArray.push(six);
-        freqArray.push(bonus);
-    };
-
-    const getMostLongerWinning = (object) => {
-        const { no1, no2, no3, no4, no5, no6 } = object;
-        const lengthOne = Object.keys(no1).length;
-        const lengthTwo = Object.keys(no2).length;
-        const lengthThree = Object.keys(no3).length;
-        const lengthFour = Object.keys(no4).length;
-        const lengthFive = Object.keys(no5).length;
-        const lengthSix = Object.keys(no6).length;
-
-        const lengthArray = [
-            lengthOne,
-            lengthTwo,
-            lengthThree,
-            lengthFour,
-            lengthFive,
-            lengthSix,
-        ];
-
-        let biggestNumber = lengthOne;
-        for (let i = 0; i < lengthArray.length; i++) {
-            if (biggestNumber <= lengthArray[i]) {
-                biggestNumber = lengthArray[i];
-            }
-        }
-
-        return biggestNumber;
-    };
 
     // TODO 1번째 당첨번호에서 무슨 번호가 가장 많이 등장했는지 순서별로 확인 필요
     const getRankByColumn = (response) => {
@@ -206,14 +71,11 @@ function App() {
 
         return newAlreadyWonData.filter((el) => {
             const StandardAlreadyWonData =
-                el.no1 === number.no1 &&
-                el.no2 === number.no2 &&
-                el.no3 === number.no3 &&
-                el.no4 === number.no4;
+                el.no4 === number.no4 &&
+                el.no5 === number.no5 &&
+                el.no6 === number.no6;
 
-            if (StandardAlreadyWonData) {
-                return returnTempLottoNumber(response);
-            }
+            if (StandardAlreadyWonData) return returnTempLottoNumber(response);
 
             setIsLoading(0);
             setArray([...array, number]);
@@ -227,24 +89,44 @@ function App() {
 
         // limit
         // 40 41 42 43 44 45
-        const limitFor1 = 40;
-        const limitFor2 = 41;
-        const limitFor3 = 42;
-        const limitFor4 = 43;
-        const limitFor5 = 44;
-        const limitFor6 = 45;
 
-        const randomNumber1 = Math.floor(Math.random() * (limitFor1 + 1));
+        // 1 ~ 40
+        const limitFor1 = { start: 1, end: 20 };
+
+        //  7 ~ 41
+        const limitFor2 = { start: 7, end: 17 };
+
+        // 13 ~ 42
+        const limitFor3 = { start: 13, end: 22 };
+
+        // 21 ~ 43
+        const limitFor4 = { start: 21, end: 35 };
+
+        // 33 ~ 44
+        const limitFor5 = { start: 26, end: 40 };
+
+        // 39 ~ 45
+        const limitFor6 = { start: 31, end: 45 };
+
+        const randomNumber1 = getRangeRandomNumber(
+            limitFor1.start,
+            limitFor1.end
+        );
         const randomNumber2 =
-            randomNumber1 && getRandomNumber(randomNumber1, limitFor2);
+            randomNumber1 &&
+            getRandomNumber(randomNumber1, limitFor2.start, limitFor2.end);
         const randomNumber3 =
-            randomNumber2 && getRandomNumber(randomNumber2, limitFor3);
+            randomNumber2 &&
+            getRandomNumber(randomNumber2, limitFor3.start, limitFor3.end);
         const randomNumber4 =
-            randomNumber3 && getRandomNumber(randomNumber3, limitFor4);
+            randomNumber3 &&
+            getRandomNumber(randomNumber3, limitFor4.start, limitFor4.end);
         const randomNumber5 =
-            randomNumber4 && getRandomNumber(randomNumber4, limitFor5);
+            randomNumber4 &&
+            getRandomNumber(randomNumber4, limitFor5.start, limitFor5.end);
         const randomNumber6 =
-            randomNumber5 && getRandomNumber(randomNumber5, limitFor6);
+            randomNumber5 &&
+            getRandomNumber(randomNumber5, limitFor6.start, limitFor6.end);
         const randomBonusNumber = Math.floor(Math.random() * (44 + 1));
 
         const tempLottoNumber = {
@@ -277,7 +159,6 @@ function App() {
         const response = await axios.get('http://localhost:5000/lotto');
 
         getRankByColumn(response);
-        console.log('getRankByColumn(response)', getRankByColumn(response));
         returnTempLottoNumber(response.data);
     };
 
@@ -292,6 +173,7 @@ function App() {
                     const { no1, no2, no3, no4, no5, no6, bonusNumber } = el;
                     return (
                         <div key={i}>
+                            {i + 1}번&nbsp;
                             {`${no1} ${no2} ${no3} ${no4} ${no5} ${no6} * ${bonusNumber}`}{' '}
                             <br />
                         </div>
